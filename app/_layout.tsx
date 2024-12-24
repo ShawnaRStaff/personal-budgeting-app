@@ -1,21 +1,21 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-import { Slot } from 'expo-router';
-import { SessionProvider } from '@/store/auth-context';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import "react-native-reanimated";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { Slot } from "expo-router";
+import { IconComponentProvider } from "@react-native-material/core";
+import { IconProps } from "@react-native-material/core";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useFonts } from "expo-font";
+import { SessionProvider } from "@/store/auth-context";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
   useEffect(() => {
@@ -29,9 +29,14 @@ export default function RootLayout() {
   }
 
   return (
-   
     <SessionProvider>
-      <Slot />
+      <IconComponentProvider IconComponent={MaterialCommunityIcons as React.ComponentType<IconProps>} />
+      <SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+          <Slot />
+        </SafeAreaView>
+      </SafeAreaProvider>
+      <StatusBar style="dark" />
     </SessionProvider>
   );
 }

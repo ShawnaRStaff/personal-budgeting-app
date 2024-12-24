@@ -32,8 +32,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
     <AuthContext.Provider
       value={{
         signIn: () => {
-          // Perform sign-in logic here
-          setSession('xxx');
+          // Perform sign-in logic here firebase and google
+          setSession('xxx'); // Set the session token
         },
         signOut: () => {
           setSession(null);
