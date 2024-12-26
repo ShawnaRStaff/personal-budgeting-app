@@ -70,7 +70,7 @@ export function ThemedTextInput({
         <Text
           style={styles["error-text"]}
         >
-          {validationErrorMessage}
+          {validationErrorMessage ? validationErrorMessage : null}
         </Text>
       )}
     </>

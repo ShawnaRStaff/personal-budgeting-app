@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, useWindowDimensions } from "react-native";
+import { ms, ScaledSheet } from "react-native-size-matters";
+import { router } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
-import { router } from "expo-router";
-import { ScaledSheet } from "react-native-size-matters";
 import { ThemedPressable } from "@/components/ThemedPressable";
-import { ThemedTextInput } from "@/components/ThemedTextInput";
 import { ThemedText } from "@/components/ThemedText";
+import { ThemedTextInput } from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { useSession } from "@/store/auth/auth-context";
 
@@ -14,13 +14,6 @@ export default function SignUp() {
   const { signIn } = useSession();
   const windowHeight = useWindowDimensions().height;
   const width = useWindowDimensions().width;
-
-  const [inputValue, setInputValue] = useState({
-    email: "",
-    displayName: "",
-    password: "",
-    confirmPassword: "",
-  });
 
   const [errors, setErrors] = useState({
     email: "",
@@ -34,6 +27,13 @@ export default function SignUp() {
     displayName: false,
     password: false,
     confirmPassword: false,
+  });
+
+  const [inputValue, setInputValue] = useState({
+    email: "",
+    displayName: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const [canSubmit, setCanSubmit] = useState(false);
@@ -58,13 +58,21 @@ export default function SignUp() {
       flex: 1,
       flexDirection: "column",
       justifyContent: "center",
-      gap: 15,
+      gap: "15@ms",
       width: "80%",
     },
   });
 
   type InputValueKey = keyof typeof inputValue;
 
+  const placeholders: Record<InputValueKey, string> = {
+    email: "Email Address",
+    displayName: "Display Name",
+    password: "Password",
+    confirmPassword: "Confirm Password",
+  };
+
+  // #TODO: move to utility file
   const handleValidateInputItem = (key: InputValueKey): boolean => {
     let hasError = false;
     const item = inputValue[key];
@@ -164,11 +172,11 @@ export default function SignUp() {
           <ThemedView style={{ paddingBottom: 20 }}>
             <ThemedText type="title">Personal Budget</ThemedText>
           </ThemedView>
-          {["email", "displayName", "password", "confirmPassword"].map(
+          {Object.keys(inputValue).map(
             (field, index) => (
               <ThemedTextInput
                 key={index}
-                placeholder={field}
+                placeholder={placeholders[field as InputValueKey]}
                 value={inputValue[field as InputValueKey]}
                 onChange={(e) =>
                   setInputValue({
@@ -195,14 +203,14 @@ export default function SignUp() {
                     : false
                 }
                 icon={
-                  field === "password" || field === "confirmPassword" ? (
+                  field === "password" ? (
                     securePasswordEntry ? (
                       <AntDesign
                         name="eyeo"
                         onPress={() =>
                           setSecurePasswordEntry(!securePasswordEntry)
                         }
-                        size={32}
+                        size={ms(32)}
                         color="#ccc"
                       />
                     ) : (
@@ -211,7 +219,7 @@ export default function SignUp() {
                         onPress={() =>
                           setSecurePasswordEntry(!securePasswordEntry)
                         }
-                        size={32}
+                        size={ms(32)}
                         color="#ccc"
                       />
                     )
@@ -223,7 +231,7 @@ export default function SignUp() {
           <ThemedPressable
             disabled={!canSubmit}
             onPress={handleSubmit}
-            style={!canSubmit ? { backgroundColor: "#ccc" } : {}}
+            style={!canSubmit && { backgroundColor: "#ccc" }}
           >
             <ThemedText>Signup</ThemedText>
           </ThemedPressable>
