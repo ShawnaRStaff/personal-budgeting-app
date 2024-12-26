@@ -34,10 +34,8 @@ export async function setStorageItemAsync(key: string, value: string | null) {
 }
 
 export function useStorageState(key: string): UseStateHook<string> {
-  // Public
   const [state, setState] = useAsyncState<string>();
 
-  // Get
   useEffect(() => {
     if (Platform.OS === 'web') {
       try {
@@ -54,7 +52,6 @@ export function useStorageState(key: string): UseStateHook<string> {
     }
   }, [key]);
 
-  // Set
   const setValue = useCallback(
     (value: string | null) => {
       setState(value);

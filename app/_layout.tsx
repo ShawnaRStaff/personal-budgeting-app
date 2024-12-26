@@ -32,7 +32,7 @@ export default function RootLayout() {
     <SessionProvider>
       <IconComponentProvider IconComponent={MaterialCommunityIcons as React.ComponentType<IconProps>} />
       <SafeAreaProvider>
-        <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+        <SafeAreaView style={{ flex: 1, height: "100%" }} edges={["top"]}>
           <Slot />
         </SafeAreaView>
       </SafeAreaProvider>

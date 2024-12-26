@@ -11,7 +11,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useSession } from "@/store/auth/auth-context";
 
 export default function SignUp() {
-  const { signIn } = useSession();
+  const { signUp } = useSession();
   const windowHeight = useWindowDimensions().height;
   const width = useWindowDimensions().width;
 
@@ -48,10 +48,9 @@ export default function SignUp() {
       justifyContent: "center",
       margin: 0,
       padding: 0,
-      minHeight: "100%",
-      height: Math.round(windowHeight),
-      minWidth: "100%",
-      maxWidth: Math.round(width),
+ 
+      minHeight: Math.max(windowHeight),
+      width: Math.max(width),
     },
     "input-container": {
       display: "flex",
@@ -157,10 +156,22 @@ export default function SignUp() {
     let isValid = true;
     for (let key in inputValue) {
       const hasError = handleValidateInputItem(key as InputValueKey);
-      if (hasError) isValid = false;
+      if (hasError){
+        isValid = false;
+        setErrorIndicator((prev) => ({
+          ...prev,
+          [key]: true,
+        }));
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [key]: "Please enter a valid " + placeholders[key as InputValueKey]
+        }));
+      }
     }
     if (isValid) {
-      signIn();
+      signUp(inputValue);
+      // if firebase failure pop toast with error message
+      //else
       router.push("/");
     }
   };

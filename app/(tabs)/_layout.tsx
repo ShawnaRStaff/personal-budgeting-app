@@ -62,6 +62,7 @@ export default function AppLayout() {
   if (!session) {
     // On web, static rendering will stop here as the user is not authenticated
     // in the headless Node process that the pages are rendered in.
+    // #TODO: change redirect to sign-in page
     return <Redirect href="../auth/sign-up" />;
   }
 
