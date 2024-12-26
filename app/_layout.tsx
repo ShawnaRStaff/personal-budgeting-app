@@ -8,7 +8,7 @@ import { IconComponentProvider } from "@react-native-material/core";
 import { IconProps } from "@react-native-material/core";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFonts } from "expo-font";
-import { SessionProvider } from "@/store/auth-context";
+import { SessionProvider } from "@/store/auth/auth-context";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

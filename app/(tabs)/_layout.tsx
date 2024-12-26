@@ -44,17 +44,17 @@
 //   );
 // }
 
-import { Text } from 'react-native';
-import { Redirect, Stack } from 'expo-router';
+import { ThemedText } from "@/components/ThemedText";
+import { Redirect, Stack } from "expo-router";
 
-import { useSession } from '@/store/auth-context';
+import { useSession } from "@/store/auth/auth-context";
 
 export default function AppLayout() {
   const { session, isLoading } = useSession();
 
   // You can keep the splash screen open, or render a loading screen like we do here.
   if (isLoading) {
-    return <Text>Loading...</Text>;
+    return <ThemedText>Loading...</ThemedText>;
   }
 
   // Only require authentication within the (app) group's layout as users
@@ -62,7 +62,7 @@ export default function AppLayout() {
   if (!session) {
     // On web, static rendering will stop here as the user is not authenticated
     // in the headless Node process that the pages are rendered in.
-    return <Redirect href="./sign-up" />;
+    return <Redirect href="../auth/sign-up" />;
   }
 
   // This layout can be deferred because it's not the root layout.

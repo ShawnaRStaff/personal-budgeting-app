@@ -1,5 +1,5 @@
 import { useContext, createContext, type PropsWithChildren } from "react";
-import { useStorageState } from "../hooks/useStorageState";
+import { useStorageState } from "../../hooks/useStorageState";
 
 const AuthContext = createContext<{
   signIn: () => void;
@@ -16,11 +16,9 @@ const AuthContext = createContext<{
 // This hook can be used to access the user info.
 export function useSession() {
   const value = useContext(AuthContext);
-  if (process.env.NODE_ENV !== "production") {
-    if (!value) {
+   if (!value) {
       throw new Error("useSession must be wrapped in a <SessionProvider />");
     }
-  }
 
   return value;
 }
@@ -32,7 +30,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
     <AuthContext.Provider
       value={{
         signIn: () => {
-          // Perform sign-in logic here firebase and google
+          // #TODO: Perform sign-in logic here firebase and google
           setSession('xxx'); // Set the session token
         },
         signOut: () => {
