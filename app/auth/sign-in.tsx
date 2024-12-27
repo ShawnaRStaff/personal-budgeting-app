@@ -9,11 +9,14 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedTextInput } from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { useSession } from "@/store/auth/auth-context";
+import { useColorScheme } from "@/hooks/useColorScheme";
 import { AuthInputValueKey, AuthFormProps } from "@/types/auth-types";
 import { handleValidateInputItem } from "@/utilities/validation-utilities";
+import { Colors } from "@/constants/Colors";
 
 export default function AuthForm() {
   const { signIn, signUp } = useSession();
+  const colorScheme = useColorScheme();
   const windowHeight = useWindowDimensions().height;
   const width = useWindowDimensions().width;
 
@@ -38,16 +41,11 @@ export default function AuthForm() {
   const isSignUp = mode === "signUp";
 
   const styles = ScaledSheet.create({
-    wrapper: {
-      alignItems: "center",
-      display: "flex",
-      flex: 1,
-      flexDirection: "column",
-      justifyContent: "center",
-      margin: 0,
-      padding: 0,
-      minHeight: Math.max(windowHeight),
-      width: Math.max(width),
+    "centered-text": {
+      textAlign: "center",
+    },
+    "form-container": {
+      paddingBottom: "20@ms",
     },
     "input-container": {
       display: "flex",
@@ -56,6 +54,18 @@ export default function AuthForm() {
       justifyContent: "center",
       gap: "15@ms",
       width: "90%",
+    },
+    wrapper: {
+      alignItems: "center",
+      display: "flex",
+      flex: 1,
+      flexDirection: "column",
+      justifyContent: "center",
+      margin: 0,
+      padding: 0,
+
+      minHeight: Math.max(windowHeight),
+      width: Math.max(width),
     },
   });
 
@@ -107,8 +117,8 @@ export default function AuthForm() {
     <ScrollView>
       <ThemedView style={styles.wrapper}>
         <ThemedView style={styles["input-container"]}>
-          <ThemedView style={{ paddingBottom: 20 }}>
-            <ThemedText style={{ textAlign: "center" }} type="title">
+          <ThemedView style={styles["form-container"]}>
+            <ThemedText style={styles["centered-text"]} type="title">
               Personal Budget
             </ThemedText>
           </ThemedView>
@@ -153,8 +163,11 @@ export default function AuthForm() {
                         onPress={() =>
                           setSecurePasswordEntry(!securePasswordEntry)
                         }
-                        size={ms(32)}
-                        color="#ccc"
+                        size={ms(24)}
+                        color={
+                          Colors[colorScheme ?? "light"].icon ??
+                          Colors[colorScheme ?? "dark"].icon
+                        }
                       />
                     ) : (
                       <Feather
@@ -162,8 +175,11 @@ export default function AuthForm() {
                         onPress={() =>
                           setSecurePasswordEntry(!securePasswordEntry)
                         }
-                        size={ms(32)}
-                        color="#ccc"
+                        size={ms(24)}
+                        color={
+                          Colors[colorScheme ?? "light"].icon ??
+                          Colors[colorScheme ?? "dark"].icon
+                        }
                       />
                     )
                   ) : undefined
@@ -174,7 +190,13 @@ export default function AuthForm() {
           <ThemedPressable
             disabled={!canSubmit}
             onPress={handleSubmit}
-            style={!canSubmit && { backgroundColor: "#ccc" }}
+            style={
+              !canSubmit && {
+                backgroundColor:
+                  Colors[colorScheme ?? "light"].icon ??
+                  Colors[colorScheme ?? "dark"].icon,
+              }
+            }
           >
             <ThemedText>{isSignUp ? "Sign Up" : "Sign In"}</ThemedText>
           </ThemedPressable>
@@ -194,7 +216,7 @@ export default function AuthForm() {
                 confirmPassword: "",
               });
             }}
-            style={{ color: "#4CAF50", textAlign: "center" }}
+            style={styles["centered-text"]}
             type="link"
           >
             {isSignUp

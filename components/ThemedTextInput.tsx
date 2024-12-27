@@ -2,6 +2,7 @@ import React from "react";
 import { Text, TextInput, View, type TextInputProps } from "react-native";
 import { ScaledSheet } from "react-native-size-matters";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { Colors } from "@/constants/Colors";
 
 export type ThemedTextInputProps = TextInputProps & {
   ariaLabel?: string;
@@ -67,9 +68,7 @@ export function ThemedTextInput({
         {icon && <View>{icon}</View>}
       </View>
       {validationError && (
-        <Text
-          style={styles["error-text"]}
-        >
+        <Text style={styles["error-text"]}>
           {validationErrorMessage ? validationErrorMessage : null}
         </Text>
       )}
@@ -80,9 +79,9 @@ export function ThemedTextInput({
 const styles = ScaledSheet.create({
   container: {
     alignItems: "center",
-    borderColor: "#ccc",
-    borderRadius: 7.5,
-    borderWidth: 1,
+    borderColor: Colors.light.primary ?? Colors.dark.primary,
+    borderRadius: "7.5@ms",
+    borderWidth: "1@ms",
     flexDirection: "row",
     paddingHorizontal: "16@ms",
   },
@@ -93,7 +92,7 @@ const styles = ScaledSheet.create({
     paddingVertical: "8@ms",
   },
   "error-text": {
-    color: "red",
+    color: "#FF0000",
     fontSize: "15@s",
     lineHeight: "15@s",
     padding: 0,

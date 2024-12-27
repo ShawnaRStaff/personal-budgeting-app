@@ -1,6 +1,7 @@
 import { Text, type TextProps } from "react-native";
 import { ScaledSheet } from "react-native-size-matters";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { Colors } from "@/constants/Colors";
 
 export type ThemedTextProps = TextProps & {
   darkColor?: string;
@@ -53,7 +54,7 @@ const styles = ScaledSheet.create({
     fontWeight: "bold",
   },
   link: {
-    color: "#0a7ea4",
+    color: Colors["light"].primary || Colors["dark"].primary,
     fontSize: "16@s",
     lineHeight: "24@ms",
   },
