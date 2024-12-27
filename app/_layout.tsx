@@ -1,12 +1,11 @@
 import "react-native-reanimated";
-import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import { Slot } from "expo-router";
-import { IconComponentProvider } from "@react-native-material/core";
-import { IconProps } from "@react-native-material/core";
+import { IconComponentProvider, IconProps } from "@react-native-material/core";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import * as SplashScreen from "expo-splash-screen";
+import { Slot } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { SessionProvider } from "@/store/auth/auth-context";
 
@@ -30,9 +29,16 @@ export default function RootLayout() {
 
   return (
     <SessionProvider>
-      <IconComponentProvider IconComponent={MaterialCommunityIcons as React.ComponentType<IconProps>} />
+      <IconComponentProvider
+        IconComponent={MaterialCommunityIcons as React.ComponentType<IconProps>}
+      />
       <SafeAreaProvider>
-        <SafeAreaView style={{ flex: 1, height: "100%" }} edges={["top"]}>
+        <SafeAreaView
+          style={{
+            flex: 1,
+          }}
+          edges={["top", "bottom"]}
+        >
           <Slot />
         </SafeAreaView>
       </SafeAreaProvider>
