@@ -1,14 +1,9 @@
 import { useContext, createContext, type PropsWithChildren } from "react";
 import { useStorageState } from "../../hooks/useStorageState";
+import { AuthContextType } from "@/types/auth-types";
 
-const AuthContext = createContext<{
-  signIn: () => void;
-  signOut: () => void;
-  signUp: (value: object) => void;
-  session?: string | null;
-  isLoading: boolean;
-}>({
-  signIn: () => null,
+const AuthContext = createContext<AuthContextType>({
+  signIn: (value) => null,
   signOut: () => null,
   signUp: (value) => null,
   session: null,
@@ -31,10 +26,10 @@ export function SessionProvider({ children }: PropsWithChildren) {
   return (
     <AuthContext.Provider
       value={{
-        signIn: () => {
+        signIn: (value) => {
           // #TODO: Perform sign-in logic here firebase and google options
           // if firebase success 
-          setSession('xxx'); // Set the session token
+          setSession('xxx'); 
           //else return error
         },
         signOut: () => {
@@ -44,7 +39,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         signUp: (value) => {
           // #TODO Perform sign-up logic and then sign in here firebase ? google ?
           // firebase success -> signIn()
-          setSession('xxx'); // Set the session token
+          setSession('xxx');
           //else return error
         },
         session,
