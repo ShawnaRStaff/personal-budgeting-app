@@ -1,5 +1,5 @@
 import { AuthFormProps, AuthInputValueKey } from "@/types/auth-types";
-import React, { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 
 const displayNameRegex = /^[a-zA-Z0-9]{2,25}$/;
 const emailRegex = /^[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -14,12 +14,12 @@ export const handleValidateInputItem = (
 ): boolean => {
     let hasError = false;
     const item = inputValue[key];
+    if(!item) {
+        return hasError;
+    }
 
     switch (key) {
         case "email":
-            if (!item) {
-                break;
-            }
             if (!emailRegex.test(item)) {
                 setErrors((prevErrors) => ({
                     ...prevErrors,
@@ -34,9 +34,6 @@ export const handleValidateInputItem = (
             }
             break;
         case "displayName":
-            if (!item) {
-                break;
-            }
             if (!displayNameRegex.test(item)) {
                 setErrors((prevErrors) => ({
                     ...prevErrors,
@@ -51,9 +48,6 @@ export const handleValidateInputItem = (
             }
             break;
         case "password":
-            if (!item) {
-                break;
-            }
             if (!passwordRegex.test(item)) {
                 setErrors((prevErrors) => ({
                     ...prevErrors,
@@ -68,9 +62,6 @@ export const handleValidateInputItem = (
             }
             break;
         case "confirmPassword":
-            if (!item) {
-                break;
-            }
             if (inputValue?.password !== item) {
                 setErrors((prevErrors) => ({
                     ...prevErrors,

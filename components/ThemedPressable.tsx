@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 import { PlatformPressable } from "@react-navigation/elements";
 import { ScaledSheet } from "react-native-size-matters";
 import * as Haptics from "expo-haptics";
+import { Colors } from "@/constants/Colors";
 
 interface ThemedPressableProps {
   children: ReactNode;
@@ -36,12 +37,13 @@ export function ThemedPressable({
 const styles = ScaledSheet.create({
   default: {
     alignItems: "center",
-    backgroundColor: "#4CAF50",
-    borderRadius: 7.5,
+    backgroundColor: Colors["light"].primary || Colors["dark"].primary,
+    borderRadius: "7.5@ms",
     display: "flex",
     flexDirection: "row",
     justifyContent: "center",
-    padding: "10@s",
+    paddingHorizontal: "15@s",
+    paddingVertical: "7.5@s",
     textAlign: "center",
   },
 });
