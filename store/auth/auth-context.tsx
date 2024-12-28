@@ -1,8 +1,8 @@
 import { useContext, createContext, type PropsWithChildren } from "react";
 import { useStorageState } from "../../hooks/useStorageState";
-import { AuthContextType, User } from "@/types/auth-types";
+import { AuthContextType, CreateUser, User } from "@/types/auth-types";
 import { auth, app } from "@/firebaseConfig";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateCurrentUser, updateProfile } from "firebase/auth";
 import {
   addDoc,
   collection,
@@ -13,7 +13,14 @@ const AuthContext = createContext<AuthContextType>({
   signIn: (value) => null,
   signOut: () => null,
   signUp: (value) => null,
-  session: null,
+  session: {
+    token: "",
+    user: {
+      uid: "",
+      displayName: "",
+      email: "",
+    },
+  },
   isLoading: false,
 });
 
@@ -28,22 +35,26 @@ export function useSession() {
 }
 
 export function SessionProvider({ children }: PropsWithChildren) {
-  const [[isLoading, session], setSession] = useStorageState("session");
+  const [[isLoading, session], setSession] = useStorageState<AuthContextType["session"]>("session");
 
   return (
     <AuthContext.Provider
       value={{
-        // #TODO: correct error handling, pop toast with error message?
-        // #TODO: add google sign in integration
-        signIn: async(value) => {
-          try{
+        signIn: async (value) => {
+          try {
             const credential = await signInWithEmailAndPassword(auth, value.email, value.password);
-            if(credential){
+            if (credential) {
               const token = await credential.user.getIdToken();
-              setSession(token);
+              setSession({
+                token,
+                user: {
+                  uid: credential.user.uid,
+                  displayName: credential.user.displayName ?? "",
+                  email: credential.user.email ?? "",
+                },
+              });
             }
-
-          }catch(error){
+          } catch (error) {
             console.error("Error signing in", error);
           }
         },
@@ -57,24 +68,28 @@ export function SessionProvider({ children }: PropsWithChildren) {
         },
         signUp: async (value) => {
           try {
-            const credential: any = await createUserWithEmailAndPassword(
-              auth,
-              value.email,
-              value.password
-            );
+            const credential = await createUserWithEmailAndPassword(auth, value.email, value.password);
             if (credential) {
-              const userData: User = {
+              const userData: CreateUser = {
                 uid: credential.user.uid,
                 displayName: value?.displayName ?? "",
-                email: credential.user.email,
+                email: credential.user?.email ?? "",
                 createdAt: Timestamp.now(),
-                profilePicture: "",
+                profilePicture: "", // implement later after adding a settings modal 
               };
-              await addDoc(collection(getFirestore(app), "users"), {
-                ...userData,
-              });
+              await updateProfile(credential.user, { displayName: value.displayName });
+              await addDoc(collection(getFirestore(app), "users"), userData);
+
               const token = await credential.user.getIdToken();
-              setSession(token);
+              console.log("User created successfully", credential.user);
+              setSession({
+                token,
+                user: {
+                  uid: credential.user.uid,
+                  displayName: credential.user.displayName ?? "",
+                  email: credential.user.email ?? "",
+                },
+              });
             }
           } catch (error) {
             console.error("Error creating user", error);
