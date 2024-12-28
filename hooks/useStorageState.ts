@@ -1,4 +1,4 @@
-import  { useEffect, useCallback, useReducer } from 'react';
+import { useEffect, useCallback, useReducer } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
@@ -13,51 +13,56 @@ function useAsyncState<T>(
   ) as UseStateHook<T>;
 }
 
-export async function setStorageItemAsync(key: string, value: string | null) {
+export async function setStorageItemAsync<T>(key: string, value: T | null) {
+  const serializedValue = value ? JSON.stringify(value) : null;
   if (Platform.OS === 'web') {
     try {
-      if (value === null) {
+      if (serializedValue === null) {
         localStorage.removeItem(key);
       } else {
-        localStorage.setItem(key, value);
+        localStorage.setItem(key, serializedValue);
       }
     } catch (e) {
       console.error('Local storage is unavailable:', e);
     }
   } else {
-    if (value == null) {
+    if (serializedValue == null) {
       await SecureStore.deleteItemAsync(key);
     } else {
-      await SecureStore.setItemAsync(key, value);
+      await SecureStore.setItemAsync(key, serializedValue);
     }
   }
 }
 
-export function useStorageState(key: string): UseStateHook<string> {
-  const [state, setState] = useAsyncState<string>();
+export function useStorageState<T>(key: string): UseStateHook<T> {
+  const [state, setState] = useAsyncState<T>();
 
   useEffect(() => {
-    if (Platform.OS === 'web') {
-      try {
-        if (typeof localStorage !== 'undefined') {
-          setState(localStorage.getItem(key));
+    const fetchValue = async () => {
+      let value: T | null = null;
+      if (Platform.OS === 'web') {
+        try {
+          const item = localStorage.getItem(key);
+          value = item ? JSON.parse(item) : null;
+        } catch (e) {
+          console.error('Local storage is unavailable:', e);
         }
-      } catch (e) {
-        console.error('Local storage is unavailable:', e);
+      } else {
+        const item = await SecureStore.getItemAsync(key);
+        value = item ? JSON.parse(item) : null;
       }
-    } else {
-      SecureStore.getItemAsync(key).then(value => {
-        setState(value);
-      });
-    }
+      setState(value);
+    };
+
+    fetchValue();
   }, [key]);
 
   const setValue = useCallback(
-    (value: string | null) => {
+    (value: T | null) => {
       setState(value);
       setStorageItemAsync(key, value);
     },
-    [key]
+    [key],
   );
 
   return [state, setValue];
