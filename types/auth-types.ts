@@ -1,4 +1,4 @@
-
+import { Timestamp } from "firebase/firestore";
 export interface AuthFormProps {
     confirmPassword?: string;
     displayName?: string;
@@ -11,6 +11,14 @@ export interface AuthContextType {
     signIn: (value: AuthFormProps) => void;
     signOut: () => void;
     signUp: (value: AuthFormProps) => void;
+}
+
+export interface User {
+    uid: string;
+    displayName: string;
+    email: string;
+    createdAt: Timestamp;
+    profilePicture: string;
 }
 
 export type AuthInputValueKey = "confirmPassword" | "email" | "displayName" | "password";

@@ -1,8 +1,14 @@
 import { useContext, createContext, type PropsWithChildren } from "react";
 import { useStorageState } from "../../hooks/useStorageState";
-import { AuthContextType } from "@/types/auth-types";
+import { AuthContextType, User } from "@/types/auth-types";
 import { auth, app } from "@/firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import {
+  addDoc,
+  collection,
+  getFirestore,
+  Timestamp,
+} from "firebase/firestore";
 const AuthContext = createContext<AuthContextType>({
   signIn: (value) => null,
   signOut: () => null,
@@ -14,42 +20,70 @@ const AuthContext = createContext<AuthContextType>({
 // This hook can be used to access the user info.
 export function useSession() {
   const value = useContext(AuthContext);
-   if (!value) {
-      throw new Error("useSession must be wrapped in a <SessionProvider />");
-    }
+  if (!value) {
+    throw new Error("useSession must be wrapped in a <SessionProvider />");
+  }
 
   return value;
 }
 
 export function SessionProvider({ children }: PropsWithChildren) {
-  const [[isLoading, session], setSession] = useStorageState('session');
+  const [[isLoading, session], setSession] = useStorageState("session");
 
   return (
     <AuthContext.Provider
       value={{
-        signIn: (value) => {
-          // #TODO: Perform sign-in logic here firebase and google options
-          // if firebase success 
-          setSession('xxx'); 
-          //else return error
+        // #TODO: correct error handling, pop toast with error message?
+        // #TODO: add google sign in integration
+        signIn: async(value) => {
+          try{
+            const credential = await signInWithEmailAndPassword(auth, value.email, value.password);
+            if(credential){
+              const token = await credential.user.getIdToken();
+              setSession(token);
+            }
+
+          }catch(error){
+            console.error("Error signing in", error);
+          }
         },
-        signOut: () => {
-          // #TODO Perform sign-out logic here
-          setSession(null);
+        signOut: async () => {
+          try {
+            await signOut(auth);
+            setSession(null);
+          } catch (error) {
+            console.error("Error signing out", error);
+          }
         },
-        signUp: (value) => {
-              console.log('Firebase auth initialized', auth);
-          // #TODO Perform sign-up logic and then sign in here firebase ? google ?
-          
-          const user: any = createUserWithEmailAndPassword(auth, value.email, value.password);
-          console.log('User created', user);
-          // firebase success -> signIn()
-          setSession('xxx');
-          //else return error
+        signUp: async (value) => {
+          try {
+            const credential: any = await createUserWithEmailAndPassword(
+              auth,
+              value.email,
+              value.password
+            );
+            if (credential) {
+              const userData: User = {
+                uid: credential.user.uid,
+                displayName: value?.displayName ?? "",
+                email: credential.user.email,
+                createdAt: Timestamp.now(),
+                profilePicture: "",
+              };
+              await addDoc(collection(getFirestore(app), "users"), {
+                ...userData,
+              });
+              const token = await credential.user.getIdToken();
+              setSession(token);
+            }
+          } catch (error) {
+            console.error("Error creating user", error);
+          }
         },
         session,
         isLoading,
-      }}>
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
