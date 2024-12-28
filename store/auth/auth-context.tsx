@@ -1,7 +1,8 @@
 import { useContext, createContext, type PropsWithChildren } from "react";
 import { useStorageState } from "../../hooks/useStorageState";
 import { AuthContextType } from "@/types/auth-types";
-
+import { auth, app } from "@/firebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 const AuthContext = createContext<AuthContextType>({
   signIn: (value) => null,
   signOut: () => null,
@@ -37,7 +38,11 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setSession(null);
         },
         signUp: (value) => {
+              console.log('Firebase auth initialized', auth);
           // #TODO Perform sign-up logic and then sign in here firebase ? google ?
+          
+          const user: any = createUserWithEmailAndPassword(auth, value.email, value.password);
+          console.log('User created', user);
           // firebase success -> signIn()
           setSession('xxx');
           //else return error
