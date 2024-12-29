@@ -9,6 +9,10 @@ if (Platform.OS === "web") {
   appId = process.env.EXPO_FIREBASE_WEB_APP_ID ?? "";
 } else if (Platform.OS === "android") {
   appId = process.env.EXPO_FIREBASE_ANDROID_APP_ID ?? "";
+} else {
+  throw new Error(
+    `Unsupported platform: ${Platform.OS}. Please ensure your platform is supported.`
+  );
 }
 
 
