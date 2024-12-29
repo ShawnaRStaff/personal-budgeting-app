@@ -16,3 +16,5 @@
     "expo-env.d.ts"
   ]
 }
+
+//@firebase/auth fix for typescript : https://stackoverflow.com/questions/76914913/cannot-import-getreactnativepersistence-in-firebase10-1-0
