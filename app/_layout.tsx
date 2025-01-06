@@ -1,4 +1,5 @@
 import "react-native-reanimated";
+import Toast from "react-native-toast-message";
 import { useEffect } from "react";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { IconComponentProvider, IconProps } from "@react-native-material/core";
@@ -42,6 +43,7 @@ export default function RootLayout() {
         </SafeAreaView>
       </SafeAreaProvider>
       <StatusBar style="dark" />
+      <Toast />
     </SessionProvider>
   );
 }

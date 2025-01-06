@@ -9,6 +9,8 @@ import {
   getFirestore,
   Timestamp,
 } from "firebase/firestore";
+import { popToast } from "@/utilities/toast-utilities";
+
 const AuthContext = createContext<AuthContextType>({
   signIn: (value) => null,
   signOut: () => null,
@@ -55,15 +57,32 @@ export function SessionProvider({ children }: PropsWithChildren) {
               });
             }
           } catch (error) {
-            console.error("Error signing in", error);
+            let errorMessage = "";
+            if (error instanceof Error) {
+              errorMessage = error.message;
+            }else if (typeof error === "string") {
+              errorMessage = error;
+            }else{
+              errorMessage = "An unknown error occurred";
+            }
+            popToast({ type: "error", text1: "Error signing in", text2: errorMessage });
           }
+          
         },
         signOut: async () => {
           try {
             await signOut(auth);
             setSession(null);
           } catch (error) {
-            console.error("Error signing out", error);
+            let errorMessage = "";
+            if (error instanceof Error) {
+              errorMessage = error.message;
+            } else if (typeof error === "string") {
+              errorMessage = error;
+            }else{
+              errorMessage = "An unknown error occurred";
+            }
+            popToast({ type: "error", text1: "Error signing out", text2: errorMessage });
           }
         },
         signUp: async (value) => {
@@ -92,7 +111,15 @@ export function SessionProvider({ children }: PropsWithChildren) {
               });
             }
           } catch (error) {
-            console.error("Error creating user", error);
+            let errorMessage = "";
+            if (error instanceof Error) {
+              errorMessage = error.message;
+            } else if (typeof error === "string") {
+              errorMessage = error;
+            }else{
+              errorMessage = "An unknown error occurred";
+            }
+            popToast({ type: "error", text1: "Error signing up", text2: errorMessage });
           }
         },
         session,
