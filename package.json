@@ -2,6 +2,11 @@
   "name": "personal-budgeting-app",
   "version": "1.0.0",
   "main": "index.ts",
+  "author": {
+    "name": "Shawna Staff"
+  },
+  "description": "",
+  "keywords": [],
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -9,10 +14,23 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/datetimepicker": "8.4.4",
+    "@react-navigation/bottom-tabs": "^7.8.12",
+    "@react-navigation/elements": "^2.9.2",
+    "@react-navigation/native": "^7.1.25",
     "expo": "~54.0.29",
+    "expo-file-system": "~19.0.21",
+    "expo-sharing": "~14.0.8",
     "expo-status-bar": "~3.0.9",
+    "firebase": "^12.6.0",
     "react": "19.1.0",
-    "react-native": "0.81.5"
+    "react-native": "0.81.5",
+    "react-native-gesture-handler": "~2.28.0",
+    "react-native-reanimated": "~4.1.1",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
