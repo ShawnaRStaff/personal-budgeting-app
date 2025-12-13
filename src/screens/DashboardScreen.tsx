@@ -1,17 +1,17 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../theme';
-import { useData } from '../contexts';
+import { useData, useTips } from '../contexts';
 import { TransactionType, Account } from '../types';
-import { TransactionItem, AddTransactionModal, AddAccountModal, NotificationsDropdown } from '../components';
+import { TransactionItem, AddTransactionModal, AddAccountModal, NotificationsDropdown, AnalyticsView, TipCard } from '../components';
 
 type ViewMode = 'all' | 'single';
+type DashboardTab = 'overview' | 'analytics';
 
 export function DashboardScreen() {
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const {
     accounts,
@@ -24,11 +24,13 @@ export function DashboardScreen() {
     budgetProgress,
     goalProgress,
     addTransaction,
+    addRecurringTransaction,
     addAccount,
     isLoading,
   } = useData();
 
   const [viewMode, setViewMode] = useState<ViewMode>('all');
+  const [dashboardTab, setDashboardTab] = useState<DashboardTab>('overview');
   const [showAccountPicker, setShowAccountPicker] = useState(false);
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -36,6 +38,10 @@ export function DashboardScreen() {
   const [quickAddType, setQuickAddType] = useState<'income' | 'expense'>('expense');
   const [dismissedAlertIds, setDismissedAlertIds] = useState<Set<string>>(new Set());
   const [alertsSeen, setAlertsSeen] = useState(false);
+
+  // Tips
+  const { getCurrentTip, dismissTip, nextTip, recordTransaction } = useTips();
+  const currentTip = getCurrentTip(dashboardTab === 'overview' ? 'dashboard' : 'analytics');
 
   // Get greeting based on time of day
   const greeting = useMemo(() => {
@@ -117,6 +123,11 @@ export function DashboardScreen() {
 
   const handleAddTransaction = async (data: any) => {
     await addTransaction(data);
+    recordTransaction();
+  };
+
+  const handleAddRecurringTransaction = async (data: any) => {
+    await addRecurringTransaction(data);
   };
 
   const handleAddAccount = async (data: any) => {
@@ -209,13 +220,10 @@ export function DashboardScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + spacing.md },
-        ]}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -242,6 +250,45 @@ export function DashboardScreen() {
             )}
           </Pressable>
         </View>
+
+        {/* Dashboard Tab Selector */}
+        <View style={styles.tabSelector}>
+          <Pressable
+            style={[styles.tabOption, dashboardTab === 'overview' && styles.tabOptionActive]}
+            onPress={() => setDashboardTab('overview')}
+          >
+            <MaterialIcons
+              name="dashboard"
+              size={18}
+              color={dashboardTab === 'overview' ? colors.text : colors.textMuted}
+            />
+            <Text style={[styles.tabOptionText, dashboardTab === 'overview' && styles.tabOptionTextActive]}>
+              Overview
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.tabOption, dashboardTab === 'analytics' && styles.tabOptionActive]}
+            onPress={() => setDashboardTab('analytics')}
+          >
+            <MaterialIcons
+              name="insert-chart"
+              size={18}
+              color={dashboardTab === 'analytics' ? colors.text : colors.textMuted}
+            />
+            <Text style={[styles.tabOptionText, dashboardTab === 'analytics' && styles.tabOptionTextActive]}>
+              Analytics
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Tip Card */}
+        {currentTip && (
+          <TipCard
+            tip={currentTip}
+            onDismiss={dismissTip}
+            onNext={() => nextTip(dashboardTab === 'overview' ? 'dashboard' : 'analytics')}
+          />
+        )}
 
         {/* Account Selector */}
         <Pressable
@@ -309,8 +356,11 @@ export function DashboardScreen() {
           </View>
         )}
 
-        {/* Balance Card */}
-        <View style={styles.balanceCard}>
+        {/* Overview Tab Content */}
+        {dashboardTab === 'overview' && (
+          <>
+            {/* Balance Card */}
+            <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>
             {viewMode === 'all' ? 'TOTAL BALANCE' : 'ACCOUNT BALANCE'}
           </Text>
@@ -404,6 +454,12 @@ export function DashboardScreen() {
               <Text style={styles.emptySubtitle}>
                 Start tracking your finances by adding your first transaction
               </Text>
+              <View style={styles.emptyTip}>
+                <MaterialIcons name="lightbulb" size={16} color={colors.info} />
+                <Text style={styles.emptyTipText}>
+                  The average person has no idea where 30% of their money goes. You're about to change that.
+                </Text>
+              </View>
               <Pressable
                 style={styles.emptyBtn}
                 onPress={() => handleQuickAdd('expense')}
@@ -519,9 +575,27 @@ export function DashboardScreen() {
               <Text style={styles.emptySubtitle}>
                 Create a budget to keep your spending on track
               </Text>
+              <View style={styles.emptyTip}>
+                <MaterialIcons name="lightbulb" size={16} color={colors.info} />
+                <Text style={styles.emptyTipText}>
+                  A budget isn't a restriction—it's permission to spend guilt-free on what matters to you.
+                </Text>
+              </View>
             </View>
           )}
         </View>
+          </>
+        )}
+
+        {/* Analytics Tab Content */}
+        {dashboardTab === 'analytics' && (
+          <AnalyticsView
+            transactions={transactions}
+            categories={categories}
+            budgetProgress={budgetProgress}
+            selectedAccountId={viewMode === 'single' ? selectedAccount?.id : null}
+          />
+        )}
       </ScrollView>
 
       {/* Add Transaction Modal */}
@@ -529,6 +603,7 @@ export function DashboardScreen() {
         visible={showAddTransaction}
         onClose={() => setShowAddTransaction(false)}
         onSubmit={handleAddTransaction}
+        onSubmitRecurring={handleAddRecurringTransaction}
         categories={[...expenseCategories, ...incomeCategories]}
         initialType={quickAddType}
         accounts={accounts}
@@ -553,7 +628,7 @@ export function DashboardScreen() {
         onDismissAlert={handleDismissAlert}
         dismissedIds={dismissedAlertIds}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -570,6 +645,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    paddingTop: spacing.md,
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.xxl,
   },
@@ -612,6 +688,33 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.text,
     fontWeight: '700',
+  },
+  tabSelector: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  tabOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.sm,
+    gap: spacing.xs,
+  },
+  tabOptionActive: {
+    backgroundColor: colors.primary,
+  },
+  tabOptionText: {
+    ...typography.bodySmall,
+    color: colors.textMuted,
+  },
+  tabOptionTextActive: {
+    color: colors.text,
+    fontWeight: '600',
   },
   accountSelector: {
     flexDirection: 'row',
@@ -795,6 +898,22 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     fontWeight: '600',
     color: colors.text,
+  },
+  emptyTip: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: `${colors.info}10`,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  emptyTipText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    flex: 1,
+    fontStyle: 'italic',
   },
   budgetOverview: {
     backgroundColor: colors.surface,

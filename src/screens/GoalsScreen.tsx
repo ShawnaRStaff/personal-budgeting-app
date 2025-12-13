@@ -1,16 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../theme';
-import { useData } from '../contexts';
+import { useData, useTips } from '../contexts';
 import { SavingsGoal } from '../types';
-import { GoalCard, AddGoalModal, ContributeModal, SwipeableRow, EditGoalModal } from '../components';
+import { GoalCard, AddGoalModal, ContributeModal, SwipeableRow, EditGoalModal, TipCard } from '../components';
 
 type FilterType = 'active' | 'completed' | 'all';
 
 export function GoalsScreen() {
-  const insets = useSafeAreaInsets();
   const { goals, goalProgress, addGoal, editGoal, removeGoal, contributeToGoal } = useData();
 
   const [showAddGoal, setShowAddGoal] = useState(false);
@@ -18,6 +17,10 @@ export function GoalsScreen() {
   const [showEditGoal, setShowEditGoal] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<SavingsGoal | null>(null);
   const [filter, setFilter] = useState<FilterType>('active');
+
+  // Tips
+  const { getCurrentTip, dismissTip, nextTip, recordGoalCreated, recordContribution } = useTips();
+  const currentTip = getCurrentTip('goals');
 
   // Calculate counts for tabs
   const goalCounts = useMemo(() => {
@@ -83,6 +86,7 @@ export function GoalsScreen() {
 
   const handleAddGoal = async (data: any) => {
     await addGoal(data);
+    recordGoalCreated();
   };
 
   const handleContribute = (goal: SavingsGoal) => {
@@ -93,6 +97,11 @@ export function GoalsScreen() {
   const handleContributeSubmit = async (amount: number, note?: string) => {
     if (!selectedGoal) return;
     await contributeToGoal(selectedGoal.id, amount, note);
+
+    // Calculate new percentage and trigger milestone toast
+    const newAmount = selectedGoal.currentAmount + amount;
+    const newPercent = (newAmount / selectedGoal.targetAmount) * 100;
+    recordContribution(newPercent);
   };
 
   const handleEditGoal = (goal: SavingsGoal) => {
@@ -134,13 +143,10 @@ export function GoalsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + spacing.md },
-        ]}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -150,6 +156,15 @@ export function GoalsScreen() {
             <MaterialIcons name="add" size={24} color={colors.text} />
           </Pressable>
         </View>
+
+        {/* Tip Card */}
+        {currentTip && (
+          <TipCard
+            tip={currentTip}
+            onDismiss={dismissTip}
+            onNext={() => nextTip('goals')}
+          />
+        )}
 
         {/* Total Saved Card */}
         <View style={styles.totalCard}>
@@ -235,6 +250,12 @@ export function GoalsScreen() {
             <Text style={styles.emptySubtitle}>
               Set goals for things you want to save for - vacation, emergency fund, or that new gadget
             </Text>
+            <View style={styles.emptyTip}>
+              <MaterialIcons name="lightbulb" size={16} color={colors.info} />
+              <Text style={styles.emptyTipText}>
+                People with written financial goals are 42% more likely to achieve them than those without.
+              </Text>
+            </View>
             <Pressable style={styles.ctaBtn} onPress={() => setShowAddGoal(true)}>
               <MaterialIcons name="add" size={20} color={colors.text} />
               <Text style={styles.ctaBtnText}>Create Goal</Text>
@@ -288,7 +309,7 @@ export function GoalsScreen() {
         onSubmit={handleEditSubmit}
         goal={selectedGoal}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -301,6 +322,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    paddingTop: spacing.md,
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.xxl,
   },
@@ -412,7 +434,22 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  emptyTip: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: `${colors.info}10`,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     marginBottom: spacing.xl,
+    gap: spacing.sm,
+  },
+  emptyTipText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    flex: 1,
+    fontStyle: 'italic',
   },
   ctaBtn: {
     flexDirection: 'row',

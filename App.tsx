@@ -17,7 +17,8 @@ import {
   SignUpScreen,
   ForgotPasswordScreen,
 } from './src/screens';
-import { AuthProvider, useAuth, DataProvider } from './src/contexts';
+import { AuthProvider, useAuth, DataProvider, TipsProvider, useTips } from './src/contexts';
+import { Toast, OnboardingModal } from './src/components';
 import { colors } from './src/theme';
 
 const Tab = createBottomTabNavigator();
@@ -49,6 +50,26 @@ function AuthNavigator() {
         />
       );
   }
+}
+
+function GlobalToast() {
+  const { toast, hideToast, showOnboarding, completeOnboarding } = useTips();
+
+  return (
+    <>
+      <Toast
+        visible={toast.visible}
+        title={toast.title}
+        message={toast.message}
+        icon={toast.icon}
+        onHide={hideToast}
+      />
+      <OnboardingModal
+        visible={showOnboarding}
+        onComplete={completeOnboarding}
+      />
+    </>
+  );
 }
 
 function MainNavigator() {
@@ -134,7 +155,10 @@ function RootNavigator() {
 
   return isAuthenticated ? (
     <DataProvider>
-      <MainNavigator />
+      <TipsProvider>
+        <MainNavigator />
+        <GlobalToast />
+      </TipsProvider>
     </DataProvider>
   ) : (
     <AuthNavigator />

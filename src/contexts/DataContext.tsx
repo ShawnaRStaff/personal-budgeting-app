@@ -13,6 +13,8 @@ import {
   TransactionType,
   CategoryType,
   BudgetPeriod,
+  RecurringTransaction,
+  RecurringFrequency,
 } from '../types';
 
 const SELECTED_ACCOUNT_KEY = '@selected_account_id';
@@ -55,6 +57,13 @@ import {
   GoalProgress,
   calculateGoalProgress,
 } from '../services/goals';
+import {
+  subscribeToRecurringTransactions,
+  createRecurringTransaction,
+  updateRecurringTransaction,
+  deleteRecurringTransaction,
+  processRecurringTransactions,
+} from '../services/recurring';
 import { useAuth } from './AuthContext';
 
 interface DataContextType {
@@ -109,6 +118,22 @@ interface DataContextType {
   removeGoal: (id: string) => Promise<void>;
   contributeToGoal: (goalId: string, amount: number, note?: string) => Promise<GoalContribution>;
 
+  // Recurring Transactions
+  recurringTransactions: RecurringTransaction[];
+  addRecurringTransaction: (data: {
+    accountId: string;
+    type: TransactionType;
+    amount: number;
+    description: string;
+    categoryId: string;
+    frequency: RecurringFrequency;
+    startDate: Date;
+    endDate?: Date;
+  }) => Promise<RecurringTransaction>;
+  editRecurringTransaction: (id: string, data: Partial<Pick<RecurringTransaction, 'amount' | 'description' | 'categoryId' | 'frequency' | 'endDate' | 'isActive'>>) => Promise<void>;
+  removeRecurringTransaction: (id: string) => Promise<void>;
+  processRecurring: () => Promise<number>;
+
   // Loading states
   isLoading: boolean;
   isInitialized: boolean;
@@ -127,8 +152,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [budgetProgress, setBudgetProgress] = useState<BudgetProgress[]>([]);
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [goalProgress, setGoalProgress] = useState<GoalProgress[]>([]);
+  const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const hasProcessedRecurringRef = useRef(false);
 
   // Refs to track current selection without closure issues
   const selectedAccountIdRef = useRef<string | null>(null);
@@ -260,6 +287,43 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     return unsubscribe;
   }, [user?.id]);
+
+  // Subscribe to recurring transactions
+  useEffect(() => {
+    if (!user?.id) {
+      setRecurringTransactions([]);
+      return;
+    }
+
+    const unsubscribe = subscribeToRecurringTransactions(user.id, (recurring) => {
+      setRecurringTransactions(recurring);
+    });
+
+    return unsubscribe;
+  }, [user?.id]);
+
+  // Process recurring transactions on first load
+  useEffect(() => {
+    if (!user?.id || hasProcessedRecurringRef.current) return;
+
+    const processRecurring = async () => {
+      try {
+        hasProcessedRecurringRef.current = true;
+        const count = await processRecurringTransactions(user.id);
+        if (count > 0) {
+          console.log(`Processed ${count} recurring transactions`);
+          // Refresh budget progress since new transactions were created
+          refreshBudgetProgress();
+        }
+      } catch (error) {
+        console.error('Error processing recurring transactions:', error);
+      }
+    };
+
+    // Wait a short time to ensure categories and accounts are loaded
+    const timer = setTimeout(processRecurring, 1000);
+    return () => clearTimeout(timer);
+  }, [user?.id, refreshBudgetProgress]);
 
   // Calculate budget progress when budgets change
   const refreshBudgetProgress = useCallback(async () => {
@@ -511,6 +575,47 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [rawTransactions, budgets]
   );
 
+  // Recurring transaction operations
+  const addRecurringTransaction = useCallback(
+    async (data: {
+      accountId: string;
+      type: TransactionType;
+      amount: number;
+      description: string;
+      categoryId: string;
+      frequency: RecurringFrequency;
+      startDate: Date;
+      endDate?: Date;
+    }) => {
+      if (!user?.id) throw new Error('User not authenticated');
+      return createRecurringTransaction(user.id, data);
+    },
+    [user?.id]
+  );
+
+  const editRecurringTransaction = useCallback(
+    async (id: string, data: Partial<Pick<RecurringTransaction, 'amount' | 'description' | 'categoryId' | 'frequency' | 'endDate' | 'isActive'>>) => {
+      await updateRecurringTransaction(id, data);
+    },
+    []
+  );
+
+  const removeRecurringTransaction = useCallback(
+    async (id: string) => {
+      await deleteRecurringTransaction(id);
+    },
+    []
+  );
+
+  const processRecurring = useCallback(async () => {
+    if (!user?.id) return 0;
+    const count = await processRecurringTransactions(user.id);
+    if (count > 0) {
+      refreshBudgetProgress();
+    }
+    return count;
+  }, [user?.id, refreshBudgetProgress]);
+
   const value: DataContextType = {
     accounts,
     selectedAccount,
@@ -540,6 +645,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     editGoal,
     removeGoal,
     contributeToGoal,
+    recurringTransactions,
+    addRecurringTransaction,
+    editRecurringTransaction,
+    removeRecurringTransaction,
+    processRecurring,
     isLoading,
     isInitialized,
   };

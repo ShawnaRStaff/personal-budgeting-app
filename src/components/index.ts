@@ -17,3 +17,7 @@ export { AddCategoryModal } from './AddCategoryModal';
 export { EditCategoryModal } from './EditCategoryModal';
 export { NotificationSettingsModal } from './NotificationSettingsModal';
 export { ExportDataModal } from './ExportDataModal';
+export { AnalyticsView } from './AnalyticsView';
+export { TipCard } from './TipCard';
+export { Toast } from './Toast';
+export { OnboardingModal } from './OnboardingModal';

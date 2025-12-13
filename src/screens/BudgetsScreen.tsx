@@ -1,14 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../theme';
-import { useData } from '../contexts';
+import { useData, useTips } from '../contexts';
 import { Budget, BudgetProgress } from '../types';
-import { BudgetCard, AddBudgetModal, EditBudgetModal, SwipeableRow } from '../components';
+import { BudgetCard, AddBudgetModal, EditBudgetModal, SwipeableRow, TipCard } from '../components';
 
 export function BudgetsScreen() {
-  const insets = useSafeAreaInsets();
   const {
     budgets,
     budgetProgress,
@@ -24,6 +23,10 @@ export function BudgetsScreen() {
   const [showEditBudget, setShowEditBudget] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Tips
+  const { getCurrentTip, dismissTip, nextTip, recordBudgetCreated } = useTips();
+  const currentTip = getCurrentTip('budgets');
 
   // Calculate totals
   const totals = useMemo(() => {
@@ -57,6 +60,7 @@ export function BudgetsScreen() {
 
   const handleAddBudget = async (data: any) => {
     await addBudget(data);
+    recordBudgetCreated();
   };
 
   const handleEditBudget = (budget: Budget) => {
@@ -97,13 +101,10 @@ export function BudgetsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + spacing.md },
-        ]}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -121,6 +122,15 @@ export function BudgetsScreen() {
             <MaterialIcons name="add" size={24} color={colors.text} />
           </Pressable>
         </View>
+
+        {/* Tip Card */}
+        {currentTip && (
+          <TipCard
+            tip={currentTip}
+            onDismiss={dismissTip}
+            onNext={() => nextTip('budgets')}
+          />
+        )}
 
         {budgetProgress.length > 0 ? (
           <>
@@ -183,6 +193,12 @@ export function BudgetsScreen() {
             <Text style={styles.emptySubtitle}>
               Create spending limits for your categories to stay on track with your financial goals
             </Text>
+            <View style={styles.emptyTip}>
+              <MaterialIcons name="lightbulb" size={16} color={colors.info} />
+              <Text style={styles.emptyTipText}>
+                A budget isn't a restriction—it's permission to spend guilt-free on what matters to you.
+              </Text>
+            </View>
             <Pressable style={styles.ctaBtn} onPress={() => setShowAddBudget(true)}>
               <MaterialIcons name="add" size={20} color={colors.text} />
               <Text style={styles.ctaBtnText}>Create Budget</Text>
@@ -210,7 +226,7 @@ export function BudgetsScreen() {
         budget={selectedBudget}
         category={selectedBudget ? getCategory(selectedBudget.categoryId) : undefined}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -223,6 +239,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    paddingTop: spacing.md,
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.xxl,
   },
@@ -309,7 +326,22 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  emptyTip: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: `${colors.info}10`,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     marginBottom: spacing.xl,
+    gap: spacing.sm,
+  },
+  emptyTipText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    flex: 1,
+    fontStyle: 'italic',
   },
   ctaBtn: {
     flexDirection: 'row',

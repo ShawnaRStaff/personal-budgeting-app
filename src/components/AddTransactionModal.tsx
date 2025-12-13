@@ -10,11 +10,19 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Switch,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, borderRadius, typography } from '../theme';
-import { TransactionType, Category, CategoryType, Account } from '../types';
+import { TransactionType, Category, CategoryType, Account, RecurringFrequency } from '../types';
+
+const FREQUENCY_OPTIONS: { value: RecurringFrequency; label: string }[] = [
+  { value: RecurringFrequency.WEEKLY, label: 'Weekly' },
+  { value: RecurringFrequency.BIWEEKLY, label: 'Every 2 weeks' },
+  { value: RecurringFrequency.MONTHLY, label: 'Monthly' },
+  { value: RecurringFrequency.YEARLY, label: 'Yearly' },
+];
 
 interface Props {
   visible: boolean;
@@ -28,6 +36,15 @@ interface Props {
     notes?: string;
     accountId?: string;
   }) => Promise<void>;
+  onSubmitRecurring?: (data: {
+    type: TransactionType;
+    amount: number;
+    description: string;
+    categoryId: string;
+    startDate: Date;
+    frequency: RecurringFrequency;
+    accountId: string;
+  }) => Promise<void>;
   categories: Category[];
   initialType?: 'income' | 'expense';
   accounts?: Account[];
@@ -39,6 +56,7 @@ export function AddTransactionModal({
   visible,
   onClose,
   onSubmit,
+  onSubmitRecurring,
   categories,
   initialType,
   accounts = [],
@@ -56,6 +74,11 @@ export function AddTransactionModal({
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showAccountPicker, setShowAccountPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Recurring transaction state
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [frequency, setFrequency] = useState<RecurringFrequency>(RecurringFrequency.MONTHLY);
+  const [showFrequencyPicker, setShowFrequencyPicker] = useState(false);
 
   // Set initial type and account when modal opens
   useEffect(() => {
@@ -86,6 +109,8 @@ export function AddTransactionModal({
     setAccountId(selectedAccountId || undefined);
     setDate(new Date());
     setNotes('');
+    setIsRecurring(false);
+    setFrequency(RecurringFrequency.MONTHLY);
   };
 
   const handleClose = () => {
@@ -110,17 +135,41 @@ export function AddTransactionModal({
       return;
     }
 
+    // For recurring transactions, category is required
+    if (isRecurring && !categoryId) {
+      Alert.alert('Error', 'Please select a category for recurring transactions');
+      return;
+    }
+
+    // For recurring transactions, account is required
+    if (isRecurring && !accountId) {
+      Alert.alert('Error', 'Please select an account for recurring transactions');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await onSubmit({
-        type,
-        amount: numAmount,
-        description: description.trim(),
-        categoryId,
-        date,
-        notes: notes.trim() || undefined,
-        accountId: requireAccountSelection ? accountId : undefined,
-      });
+      if (isRecurring && onSubmitRecurring && accountId && categoryId) {
+        await onSubmitRecurring({
+          type,
+          amount: numAmount,
+          description: description.trim(),
+          categoryId,
+          startDate: date,
+          frequency,
+          accountId,
+        });
+      } else {
+        await onSubmit({
+          type,
+          amount: numAmount,
+          description: description.trim(),
+          categoryId,
+          date,
+          notes: notes.trim() || undefined,
+          accountId: requireAccountSelection ? accountId : undefined,
+        });
+      }
       handleClose();
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to add transaction');
@@ -307,6 +356,78 @@ export function AddTransactionModal({
                 />
               </View>
             </View>
+
+            {/* Recurring Transaction Toggle */}
+            {onSubmitRecurring && (
+              <View style={styles.recurringSection}>
+                <View style={styles.recurringToggle}>
+                  <View style={styles.recurringInfo}>
+                    <MaterialIcons name="repeat" size={20} color={colors.primary} />
+                    <View style={styles.recurringText}>
+                      <Text style={styles.recurringLabel}>Make this recurring</Text>
+                      <Text style={styles.recurringDescription}>
+                        Automatically add this transaction on schedule
+                      </Text>
+                    </View>
+                  </View>
+                  <Switch
+                    value={isRecurring}
+                    onValueChange={setIsRecurring}
+                    trackColor={{ false: colors.border, true: colors.primary }}
+                    thumbColor={colors.white}
+                  />
+                </View>
+
+                {isRecurring && (
+                  <>
+                    {/* Account Selector for Recurring (always required) */}
+                    {!requireAccountSelection && accounts.length > 0 && (
+                      <View style={styles.field}>
+                        <Text style={styles.label}>Account</Text>
+                        <Pressable
+                          style={styles.inputContainer}
+                          onPress={() => setShowAccountPicker(true)}
+                        >
+                          <View style={[
+                            styles.accountDot,
+                            { backgroundColor: selectedAccount?.color || colors.primary }
+                          ]} />
+                          <Text style={[
+                            styles.inputText,
+                            !selectedAccount && styles.inputPlaceholder
+                          ]}>
+                            {selectedAccount?.name || 'Select an account'}
+                          </Text>
+                          <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+                        </Pressable>
+                      </View>
+                    )}
+
+                    {/* Frequency Picker */}
+                    <View style={styles.field}>
+                      <Text style={styles.label}>Frequency</Text>
+                      <Pressable
+                        style={styles.inputContainer}
+                        onPress={() => setShowFrequencyPicker(true)}
+                      >
+                        <MaterialIcons name="schedule" size={20} color={colors.textMuted} />
+                        <Text style={styles.inputText}>
+                          {FREQUENCY_OPTIONS.find(f => f.value === frequency)?.label || 'Monthly'}
+                        </Text>
+                        <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+                      </Pressable>
+                    </View>
+
+                    <View style={styles.recurringNote}>
+                      <MaterialIcons name="info-outline" size={16} color={colors.info} />
+                      <Text style={styles.recurringNoteText}>
+                        First transaction will be created on {formatDate(date)}, then repeats {FREQUENCY_OPTIONS.find(f => f.value === frequency)?.label.toLowerCase()}
+                      </Text>
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
           </ScrollView>
 
           {/* Submit Button */}
@@ -320,8 +441,10 @@ export function AddTransactionModal({
                 <ActivityIndicator color={colors.text} />
               ) : (
                 <>
-                  <MaterialIcons name="add" size={20} color={colors.text} />
-                  <Text style={styles.submitBtnText}>Add Transaction</Text>
+                  <MaterialIcons name={isRecurring ? 'repeat' : 'add'} size={20} color={colors.text} />
+                  <Text style={styles.submitBtnText}>
+                    {isRecurring ? 'Create Recurring Transaction' : 'Add Transaction'}
+                  </Text>
                 </>
               )}
             </Pressable>
@@ -424,6 +547,46 @@ export function AddTransactionModal({
                     </Text>
                   </View>
                   {accountId === account.id && (
+                    <MaterialIcons name="check" size={20} color={colors.primary} />
+                  )}
+                </Pressable>
+              ))}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Frequency Picker Modal */}
+      <Modal
+        visible={showFrequencyPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowFrequencyPicker(false)}
+      >
+        <Pressable style={styles.overlay} onPress={() => setShowFrequencyPicker(false)}>
+          <Pressable style={styles.categoryPicker} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.categoryHeader}>
+              <Text style={styles.categoryTitle}>Select Frequency</Text>
+              <Pressable onPress={() => setShowFrequencyPicker(false)}>
+                <MaterialIcons name="close" size={24} color={colors.text} />
+              </Pressable>
+            </View>
+            <ScrollView style={styles.categoryList}>
+              {FREQUENCY_OPTIONS.map((option) => (
+                <Pressable
+                  key={option.value}
+                  style={[
+                    styles.categoryItem,
+                    frequency === option.value && styles.categoryItemSelected,
+                  ]}
+                  onPress={() => {
+                    setFrequency(option.value);
+                    setShowFrequencyPicker(false);
+                  }}
+                >
+                  <MaterialIcons name="schedule" size={20} color={colors.textMuted} />
+                  <Text style={styles.categoryName}>{option.label}</Text>
+                  {frequency === option.value && (
                     <MaterialIcons name="check" size={20} color={colors.primary} />
                   )}
                 </Pressable>
@@ -639,5 +802,49 @@ const styles = StyleSheet.create({
   accountBalance: {
     ...typography.bodySmall,
     color: colors.textMuted,
+  },
+  recurringSection: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginTop: spacing.sm,
+  },
+  recurringToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  recurringInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: spacing.sm,
+  },
+  recurringText: {
+    flex: 1,
+  },
+  recurringLabel: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  recurringDescription: {
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  recurringNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: colors.info + '15',
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+    marginTop: spacing.md,
+    gap: spacing.sm,
+  },
+  recurringNoteText: {
+    ...typography.bodySmall,
+    color: colors.info,
+    flex: 1,
   },
 });
