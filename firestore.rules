@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Users collection - users can only read/write their own document
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Accounts collection
+    match /accounts/{accountId} {
+      allow read, write: if isAuthenticated()
+        && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated()
+        && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Transactions collection
+    match /transactions/{transactionId} {
+      allow read, write: if isAuthenticated()
+        && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated()
+        && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Categories collection
+    match /categories/{categoryId} {
+      allow read, write: if isAuthenticated()
+        && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated()
+        && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Budgets collection
+    match /budgets/{budgetId} {
+      allow read, write: if isAuthenticated()
+        && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated()
+        && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Goals collection
+    match /goals/{goalId} {
+      allow read, write: if isAuthenticated()
+        && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated()
+        && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Recurring Transactions collection
+    match /recurringTransactions/{recurringId} {
+      allow read, write: if isAuthenticated()
+        && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated()
+        && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
