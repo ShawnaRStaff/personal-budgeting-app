@@ -126,46 +126,56 @@ export function subscribeToCategories(
   });
 }
 
-// Initialize default categories for a new user
+// Initialize default categories for a new user (or add missing defaults for existing users)
 export async function initializeDefaultCategories(userId: string): Promise<void> {
   const batch = writeBatch(db);
   const now = serverTimestamp();
 
-  // Check if user already has categories
+  // Get existing categories for this user
   const existing = await getCategories(userId);
-  if (existing.length > 0) return;
+  const existingNames = new Set(existing.map(cat => cat.name.toLowerCase()));
 
-  // Add expense categories
+  let hasNewCategories = false;
+
+  // Add missing expense categories
   for (const cat of DEFAULT_EXPENSE_CATEGORIES) {
-    const docRef = doc(collection(db, COLLECTION));
-    batch.set(docRef, {
-      userId,
-      name: cat.name,
-      type: CategoryType.EXPENSE,
-      icon: cat.icon,
-      color: cat.color,
-      parentId: null,
-      isDefault: true,
-      createdAt: now,
-      updatedAt: now,
-    });
+    if (!existingNames.has(cat.name.toLowerCase())) {
+      const docRef = doc(collection(db, COLLECTION));
+      batch.set(docRef, {
+        userId,
+        name: cat.name,
+        type: CategoryType.EXPENSE,
+        icon: cat.icon,
+        color: cat.color,
+        parentId: null,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now,
+      });
+      hasNewCategories = true;
+    }
   }
 
-  // Add income categories
+  // Add missing income categories
   for (const cat of DEFAULT_INCOME_CATEGORIES) {
-    const docRef = doc(collection(db, COLLECTION));
-    batch.set(docRef, {
-      userId,
-      name: cat.name,
-      type: CategoryType.INCOME,
-      icon: cat.icon,
-      color: cat.color,
-      parentId: null,
-      isDefault: true,
-      createdAt: now,
-      updatedAt: now,
-    });
+    if (!existingNames.has(cat.name.toLowerCase())) {
+      const docRef = doc(collection(db, COLLECTION));
+      batch.set(docRef, {
+        userId,
+        name: cat.name,
+        type: CategoryType.INCOME,
+        icon: cat.icon,
+        color: cat.color,
+        parentId: null,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now,
+      });
+      hasNewCategories = true;
+    }
   }
 
-  await batch.commit();
+  if (hasNewCategories) {
+    await batch.commit();
+  }
 }
