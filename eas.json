@@ -11,6 +11,13 @@
         "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON"
       }
     },
+    "development-local": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "env": {

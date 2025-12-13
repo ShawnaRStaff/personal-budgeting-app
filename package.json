@@ -9,8 +9,8 @@
   "keywords": [],
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
@@ -21,6 +21,7 @@
     "@react-navigation/elements": "^2.9.2",
     "@react-navigation/native": "^7.1.25",
     "expo": "~54.0.29",
+    "expo-dev-client": "~6.0.20",
     "expo-file-system": "~19.0.21",
     "expo-font": "~14.0.10",
     "expo-linear-gradient": "~15.0.8",

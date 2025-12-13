@@ -19,7 +19,8 @@ service cloud.firestore {
 
     // Accounts collection
     match /accounts/{accountId} {
-      allow read, write: if isAuthenticated()
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
         && request.auth.uid == resource.data.userId;
       allow create: if isAuthenticated()
         && request.auth.uid == request.resource.data.userId;
@@ -27,7 +28,8 @@ service cloud.firestore {
 
     // Transactions collection
     match /transactions/{transactionId} {
-      allow read, write: if isAuthenticated()
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
         && request.auth.uid == resource.data.userId;
       allow create: if isAuthenticated()
         && request.auth.uid == request.resource.data.userId;
@@ -35,7 +37,8 @@ service cloud.firestore {
 
     // Categories collection
     match /categories/{categoryId} {
-      allow read, write: if isAuthenticated()
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
         && request.auth.uid == resource.data.userId;
       allow create: if isAuthenticated()
         && request.auth.uid == request.resource.data.userId;
@@ -43,15 +46,26 @@ service cloud.firestore {
 
     // Budgets collection
     match /budgets/{budgetId} {
-      allow read, write: if isAuthenticated()
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
         && request.auth.uid == resource.data.userId;
       allow create: if isAuthenticated()
         && request.auth.uid == request.resource.data.userId;
     }
 
-    // Goals collection
-    match /goals/{goalId} {
-      allow read, write: if isAuthenticated()
+    // Savings Goals collection
+    match /savingsGoals/{goalId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+        && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated()
+        && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Goal Contributions collection
+    match /goalContributions/{contributionId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
         && request.auth.uid == resource.data.userId;
       allow create: if isAuthenticated()
         && request.auth.uid == request.resource.data.userId;
@@ -59,7 +73,8 @@ service cloud.firestore {
 
     // Recurring Transactions collection
     match /recurringTransactions/{recurringId} {
-      allow read, write: if isAuthenticated()
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
         && request.auth.uid == resource.data.userId;
       allow create: if isAuthenticated()
         && request.auth.uid == request.resource.data.userId;

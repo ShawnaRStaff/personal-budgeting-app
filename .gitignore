@@ -37,6 +37,7 @@ yarn-error.*
 # Firebase secrets - DO NOT COMMIT
 google-services.json
 GoogleService-Info.plist
+budgeting-app-*.json
 
 # typescript
 *.tsbuildinfo
