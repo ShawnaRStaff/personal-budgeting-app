@@ -34,7 +34,8 @@
   "submit": {
     "production": {
       "android": {
-        "releaseStatus": "draft"
+        "track": "internal",
+        "releaseStatus": "completed"
       }
     }
   }
