@@ -32,6 +32,9 @@ export default {
       eas: {
         projectId: "1e4cc392-7cc2-4b2f-91a4-b676d99b8cd4"
       }
-    }
+    },
+    plugins: [
+      "expo-font"
+    ]
   }
 };
