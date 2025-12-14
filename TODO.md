@@ -6,22 +6,36 @@ This document outlines planned features and improvements for Personal Budget.
 
 ## Educational Content
 
-### Financial Literacy Tips
-- [ ] Daily/weekly financial tips on the dashboard
-- [ ] "Did you know?" cards about saving, investing, and budgeting
-- [ ] Beginner's guide to personal finance (in-app articles)
-- [ ] Interactive tutorials for first-time users
+### Smart Content Curation (Hybrid Approach)
+Personalized financial education powered by curated content + AI insights.
 
-### Budgeting Education
-- [ ] 50/30/20 rule explainer and budget template
-- [ ] Zero-based budgeting guide
-- [ ] Emergency fund calculator and education
-- [ ] Debt payoff strategies (avalanche vs. snowball)
+**How It Works:**
+1. Analyze user's spending patterns, budgets, and goals
+2. Surface relevant content from trusted sources
+3. AI generates personalized summaries and actionable takeaways
 
-### Video Content
-- [ ] Short-form video tips (TikTok-style)
-- [ ] Embedded YouTube financial literacy content
-- [ ] Step-by-step budgeting walkthroughs
+### Curated Content Sources
+- [ ] Integration with trusted sources (NerdWallet, Investopedia, The Balance)
+- [ ] YouTube API for curated financial education videos
+- [ ] Smart filtering based on user's financial situation
+- [ ] Content tagging system (debt, savings, investing, frugal living, etc.)
+- [ ] Bookmark/save articles for later
+
+### AI-Personalized Recommendations
+| User Behavior | Recommended Content |
+|---------------|---------------------|
+| Overspending on dining | Meal prep guides, cooking videos |
+| No emergency fund | "Building Your First $1000" content |
+| High debt | Debt payoff strategies (avalanche vs snowball) |
+| Under budget consistently | Investing basics, wealth building |
+| Groceries over budget | Meal planning, store comparison tips |
+| New user | Onboarding series, budgeting 101 |
+
+### AI-Generated Insights
+- [ ] Personalized article/video summaries
+- [ ] Weekly "Financial Health Report" with tailored advice
+- [ ] Context-aware tips based on recent transactions
+- [ ] "Why this matters for YOU" explanations on content
 
 ---
 
