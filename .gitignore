@@ -45,3 +45,5 @@ budgeting-app-*.json
 # generated native folders
 /ios
 /android
+
+.env.local

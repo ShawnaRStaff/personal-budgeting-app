@@ -20,6 +20,26 @@ import {
 import { AuthProvider, useAuth, DataProvider, TipsProvider, useTips } from './src/contexts';
 import { Toast, OnboardingModal } from './src/components';
 import { colors } from './src/theme';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://9edf54df4e42c7a35ea9324762171ffb@o4510652861120512.ingest.us.sentry.io/4510652863676416',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration(), Sentry.feedbackIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 const Tab = createBottomTabNavigator();
 
@@ -167,7 +187,7 @@ function RootNavigator() {
   );
 }
 
-export default function App() {
+export default Sentry.wrap(function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -180,7 +200,7 @@ export default function App() {
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
-}
+});
 
 const styles = StyleSheet.create({
   loadingContainer: {

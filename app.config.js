@@ -34,7 +34,15 @@ export default {
       }
     },
     plugins: [
-      "expo-font"
+      "expo-font",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "budgeting-app",
+          "organization": "msi-industries"
+        }
+      ]
     ]
   }
 };
